@@ -1,0 +1,352 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "description" : "Syncpro AV device server",
+    "version" : "1.0.0",
+    "title" : "Device management API",
+    "contact" : {
+      "email" : "info@syncpro.io"
+    },
+    "license" : {
+      "name" : "Apache 2.0",
+      "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "host" : "virtserver.swaggerhub.com",
+  "basePath" : "/murkin/syncpro/1.0.0",
+  "schemes" : [ "https" ],
+  "paths" : {
+    "/device/{deviceId}" : {
+      "get" : {
+        "summary" : "Get device information",
+        "description" : "Return full configuration object for a device\n",
+        "operationId" : "getInfo",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "deviceId",
+          "in" : "path",
+          "description" : "Device ID",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Device information",
+            "schema" : {
+              "$ref" : "#/definitions/DeviceInfo"
+            }
+          },
+          "403" : {
+            "description" : "Missing or invalid auth header"
+          }
+        }
+      }
+    },
+    "/device/register" : {
+      "post" : {
+        "summary" : "Register new device",
+        "description" : "Register new IoT device with the server",
+        "operationId" : "registerDevice",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "device",
+          "description" : "New device information",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/NewDevice"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Connection information",
+            "schema" : {
+              "$ref" : "#/definitions/ConnectionInfo"
+            }
+          },
+          "400" : {
+            "description" : "Device already registered"
+          }
+        }
+      }
+    },
+    "/device/confirm/{deviceId}" : {
+      "post" : {
+        "summary" : "Report command execution progress",
+        "description" : "Provide feedback on requested command execution",
+        "operationId" : "confirm",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "deviceId",
+          "in" : "path",
+          "description" : "Unique id of the device",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "status",
+          "description" : "Command execution status",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/ConfirmInfo"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Command confirmed",
+            "schema" : {
+              "$ref" : "#/definitions/ConfigVersion"
+            }
+          }
+        }
+      }
+    },
+    "/device/telemetry/{deviceId}" : {
+      "post" : {
+        "summary" : "Send telemetry reports",
+        "description" : "Send telemetry reports to the server",
+        "operationId" : "telemetry",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "deviceId",
+          "in" : "path",
+          "description" : "Unique id of the device",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "telemetry",
+          "description" : "Telemetry information",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/TelemetryInfo"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Telemetry received",
+            "schema" : {
+              "$ref" : "#/definitions/ConfigVersion"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions" : {
+    "TelemetryInfo" : {
+      "type" : "object",
+      "properties" : {
+        "time" : {
+          "type" : "string",
+          "format" : "datetime",
+          "example" : "2019-02-14T10:10:09Z"
+        },
+        "status" : {
+          "type" : "string",
+          "example" : "ok"
+        },
+        "params" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/TelemetryInfo_params"
+          }
+        }
+      }
+    },
+    "ConfirmInfo" : {
+      "type" : "object",
+      "properties" : {
+        "status" : {
+          "type" : "string",
+          "example" : "Fail"
+        },
+        "message" : {
+          "type" : "string",
+          "example" : "Null exception during boot"
+        }
+      }
+    },
+    "ConfigVersion" : {
+      "type" : "object",
+      "properties" : {
+        "version" : {
+          "type" : "string",
+          "example" : "44"
+        }
+      },
+      "description" : "Latest version of the device configuration. If higher than before, device should query the device information endpoint for updates."
+    },
+    "ConnectionInfo" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "example" : "MmJiMmJhMDYtODA1ZC00OTRlLWE1YjAtZjJhNDE5NDI2MmVj"
+        },
+        "accessKey" : {
+          "type" : "string",
+          "example" : "NzNhZThlNmItNDk5OS00YmEyLThkZDYtZDQ3MjAzOWUyNTRl"
+        },
+        "firmware" : {
+          "$ref" : "#/definitions/ConnectionInfo_firmware"
+        }
+      }
+    },
+    "NewDevice" : {
+      "type" : "object",
+      "properties" : {
+        "mac" : {
+          "type" : "string",
+          "format" : "macaddress",
+          "example" : "3D:F2:C9:A6:B3:4F"
+        },
+        "sn" : {
+          "type" : "string",
+          "example" : "abcdefg12345232122"
+        },
+        "vendor" : {
+          "type" : "string",
+          "example" : "SyncPro"
+        },
+        "model" : {
+          "type" : "string",
+          "example" : "AV Matrix 33x"
+        },
+        "secret" : {
+          "type" : "string",
+          "example" : "12345678901234567000"
+        },
+        "fwversion" : {
+          "type" : "string",
+          "example" : "1.22.4"
+        }
+      }
+    },
+    "DeviceInfo" : {
+      "type" : "object",
+      "required" : [ "id" ],
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "example" : "M2IyNjBiN2ItMjQzMC00Yjk3LTlkNTYtZjdkOTAyODlmNTBm"
+        },
+        "status" : {
+          "type" : "string",
+          "example" : "online"
+        },
+        "version" : {
+          "type" : "number",
+          "example" : 55.0
+        },
+        "custom" : {
+          "type" : "object",
+          "properties" : { }
+        },
+        "manufactured" : {
+          "$ref" : "#/definitions/Manufactured"
+        },
+        "firmware" : {
+          "$ref" : "#/definitions/Firmware"
+        },
+        "command" : {
+          "$ref" : "#/definitions/Command"
+        },
+        "access" : {
+          "$ref" : "#/definitions/Access"
+        }
+      }
+    },
+    "Access" : {
+      "properties" : {
+        "accessKey" : {
+          "type" : "string",
+          "example" : "ZWI5NDhkYWYtZjk4MS00ZTM4LTkzYWUtZGRiZjMyZTA5NDM1"
+        }
+      }
+    },
+    "Command" : {
+      "properties" : {
+        "commend" : {
+          "type" : "string",
+          "example" : "restart"
+        },
+        "params" : {
+          "type" : "string",
+          "example" : "-p 3000"
+        },
+        "status" : {
+          "type" : "string",
+          "example" : "in progress"
+        },
+        "message" : {
+          "type" : "string",
+          "example" : ""
+        }
+      }
+    },
+    "Firmware" : {
+      "properties" : {
+        "version" : {
+          "type" : "string",
+          "example" : "0.22.3"
+        },
+        "updateURL" : {
+          "type" : "string",
+          "format" : "uri",
+          "example" : "https://updates.devices.syncpro.io/syncpro/0.22.4"
+        }
+      }
+    },
+    "Manufactured" : {
+      "properties" : {
+        "sn" : {
+          "type" : "string",
+          "example" : "abcdefg1234523212"
+        },
+        "mac" : {
+          "type" : "string",
+          "format" : "macaddress",
+          "example" : "3D:F2:C9:A6:B3:4"
+        },
+        "vendor" : {
+          "type" : "string",
+          "example" : "Syncpro"
+        },
+        "model" : {
+          "type" : "string",
+          "example" : "HDMI Matrix 33x"
+        },
+        "secret" : {
+          "type" : "string",
+          "example" : "AbhTy6J98RtiorkkZ69s"
+        }
+      }
+    },
+    "TelemetryInfo_params" : {
+      "type" : "object",
+      "properties" : {
+        "name" : {
+          "type" : "string",
+          "example" : "volume"
+        },
+        "value" : {
+          "type" : "string",
+          "example" : "10"
+        }
+      }
+    },
+    "ConnectionInfo_firmware" : {
+      "type" : "object",
+      "properties" : {
+        "version" : {
+          "type" : "string",
+          "example" : "1.22.4"
+        }
+      }
+    }
+  }
+}
